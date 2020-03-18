@@ -1,0 +1,22 @@
+---
+sudo: 'required'
+services: 
+  - docker
+
+before_install:
+  # Upgrade Docker.
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+
+script:
+  - docker build -t docker-ansible .
+  - docker run --name test-container -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro docker-ansible
+  - docker exec --tty test-container env TERM=xterm ansible --version
+
+deploy:
+  provider: script
+  script: 
+    - docker tag ${IMAGE} ${TARGET_IMAGE}
+    - docker push ${TARGET_IMAGE}
+  on:
+    branch: master
