@@ -2,9 +2,10 @@ FROM fedora:31
 LABEL maintainer="Marcos Soutullo"
 ENV container=docker
 
+# Prepare baseline system
 RUN dnf -y update && dnf clean all
 
-# Enable systemd.
+# Enable systemd
 RUN dnf -y install systemd && dnf clean all && \
   (cd /lib/systemd/system/sysinit.target.wants/; \ 
   for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done)
@@ -18,18 +19,15 @@ RUN rm -f /lib/systemd/system/multi-user.target.wants/*;\
     rm -f /lib/systemd/system/basic.target.wants/*;\
     rm -f /lib/systemd/system/anaconda.target.wants/*;
 
-# Install pip and other requirements.
+# Install pip and other requirements
 RUN dnf makecache && dnf -y install \
-    python3-pip \
-    sudo \
-    which \
-    python3-dnf \
-  && dnf clean all
+    python3-pip sudo whichpython3-dnf \
+    && dnf clean all
 
 # Install Ansible
 RUN pip3 install ansible
 
-# Disable requiretty.
+# Disable requiretty
 RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/'  /etc/sudoers
 
 # Install Ansible inventory file.
